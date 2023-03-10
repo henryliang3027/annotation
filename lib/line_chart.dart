@@ -29,6 +29,8 @@ class LineChartState extends State<LineChart> {
   double _xRange = 0.0;
   double _yRange = 0.0;
   late final LineSeries _longestLineSeries;
+  double _scaleFocalPointX = 0.0;
+  double _shift = 0.0;
 
   @override
   void initState() {
@@ -73,11 +75,11 @@ class LineChartState extends State<LineChart> {
     return GestureDetector(
       onScaleStart: (details) {
         // setState(() {});
-
         if (details.pointerCount == 2) {
           print('onScaleStart');
 
           _onScaleStart = true;
+          _scaleFocalPointX = details.focalPoint.dx;
         }
       },
       onScaleUpdate: (details) {
@@ -88,13 +90,10 @@ class LineChartState extends State<LineChart> {
                 ? _baseScale * details.scale
                 : 1.0;
 
-            // get the local position of the tap
-            final newOffset = details.focalPoint.dx * _scale;
-
             //_offset = -newOffset + details.focalPoint.dx * _baseScale;
-            _offset = -(details.focalPoint.dx * _scale - details.focalPoint.dx);
-            print('0:${_offset}');
-            print('0:${-newOffset}, ${details.focalPoint.dx * _baseScale}');
+            _offset =
+                -(_scaleFocalPointX * _scale - _scaleFocalPointX) + _shift;
+            print('0:${_offset}, $_scaleFocalPointX');
           }
           if (details.pointerCount == 1) {
             _offset += details.focalPointDelta.dx;
@@ -105,6 +104,7 @@ class LineChartState extends State<LineChart> {
       onScaleEnd: (details) {
         _onScaleStart = false;
         _baseScale = _scale;
+        _shift = _offset;
       },
       onLongPressMoveUpdate: (details) {
         setState(() {
