@@ -1,6 +1,6 @@
 # annotation
 
-A new Flutter project.
+A line chart can support vertical trackball, zooming and panning and can display multiple line series
 
 ## Getting Started
 
