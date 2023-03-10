@@ -173,24 +173,16 @@ class _MyHomePage2State extends State<MyHomePage2> {
               ),
             )),
             RepaintBoundary(
-              child: Container(
-                width: 400,
-                height: 200,
-                child: LineChart(
-                  lineSeriesCollection: _lineSeriesCollection,
-                ),
+              child: LineChart(
+                lineSeriesCollection: _lineSeriesCollection,
               ),
             ),
             const SizedBox(
               height: 50.0,
             ),
             RepaintBoundary(
-              child: Container(
-                width: 400,
-                height: 200,
-                child: LineChart(
-                  lineSeriesCollection: _lineSeriesCollection,
-                ),
+              child: LineChart(
+                lineSeriesCollection: _lineSeriesCollection,
               ),
             ),
           ],

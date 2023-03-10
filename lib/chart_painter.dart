@@ -7,7 +7,9 @@ class LineChartPainter extends CustomPainter {
   final List<LineSeries> lineSeriesCollection;
   final LineSeries longestLineSeries;
   final bool showTooltip;
+  final DateTime closestDateTime;
   final bool onScaleStart;
+  final bool onScaleUpdate;
   final double x;
   final double leftOffset;
   final double rightOffset;
@@ -24,7 +26,9 @@ class LineChartPainter extends CustomPainter {
     required this.lineSeriesCollection,
     required this.longestLineSeries,
     required this.showTooltip,
+    required this.closestDateTime,
     required this.onScaleStart,
+    required this.onScaleUpdate,
     required this.x,
     required this.leftOffset,
     required this.rightOffset,
@@ -137,11 +141,6 @@ class LineChartPainter extends CustomPainter {
     }
 
     if (showTooltip) {
-      DateTime closestDateTime = _findClosetPoint(
-        tapX: x,
-        xStep: xStep * scale,
-      );
-
       // draw vertical line at the closest point
       Paint verticalLinePaint = Paint()
         ..color = Colors.black
