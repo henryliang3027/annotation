@@ -20,7 +20,7 @@ class LineChartState extends State<LineChart> {
 
   double _offset = 0.0;
   double _scale = 1.0;
-  double _baseScale = 1.0;
+  double _lastScaleValue = 1.0;
 
   double _minValue = 0.0;
   double _maxValue = 0.0;
@@ -29,6 +29,9 @@ class LineChartState extends State<LineChart> {
   double _xRange = 0.0;
   double _yRange = 0.0;
   late final LineSeries _longestLineSeries;
+  double _focalPointX = 0.0;
+  double _lastUpdateFocalPointX = 0.0;
+  double _deltaFocalPointX = 0.0;
 
   @override
   void initState() {
@@ -70,41 +73,63 @@ class LineChartState extends State<LineChart> {
 
   @override
   Widget build(BuildContext context) {
+    double calculateOffsetX(
+      double newScale,
+      double focusOnScreen,
+    ) {
+      double widgetWidth = context.size!.width;
+
+      double ratioInGraph =
+          (_offset.abs() + focusOnScreen) / (_scale * widgetWidth);
+
+      double newTotalWidth = newScale * widgetWidth;
+
+      double newLocationInGraph = ratioInGraph * newTotalWidth;
+
+      return focusOnScreen - newLocationInGraph;
+    }
+
+    updateScaleAndScrolling(double newScale, double focusX,
+        {double extraX = 0.0}) {
+      var widgetWidth = context.size!.width;
+
+      newScale = newScale.clamp(1.0, 30.0);
+
+      // 根据缩放焦点计算出left
+      double left = calculateOffsetX(newScale, focusX);
+
+      // 加上额外的水平偏移量
+      left += extraX;
+      print('1: ${left}');
+      // 将x范围限制图表宽度内
+      double newOffsetX = left.clamp((newScale - 1) * -widgetWidth, 0.0);
+
+      setState(() {
+        _scale = newScale;
+        _offset = newOffsetX;
+      });
+    }
+
     return GestureDetector(
       onScaleStart: (details) {
-        // setState(() {});
-
-        if (details.pointerCount == 2) {
-          print('onScaleStart');
-
-          _onScaleStart = true;
-        }
+        _focalPointX = details.focalPoint.dx;
+        _lastScaleValue = _scale;
+        _lastUpdateFocalPointX = details.focalPoint.dx;
+        _onScaleStart = true;
       },
       onScaleUpdate: (details) {
-        setState(() {
-          _onScaleStart = false;
-          if (details.pointerCount == 2) {
-            _scale = _baseScale * details.scale >= 1.0
-                ? _baseScale * details.scale
-                : 1.0;
+        _onScaleStart = false;
 
-            // get the local position of the tap
-            final newOffset = details.focalPoint.dx * _scale;
+        double newScale = (_lastScaleValue * details.scale);
 
-            //_offset = -newOffset + details.focalPoint.dx * _baseScale;
-            _offset = -(details.focalPoint.dx * _scale - details.focalPoint.dx);
-            print('0:${_offset}');
-            print('0:${-newOffset}, ${details.focalPoint.dx * _baseScale}');
-          }
-          if (details.pointerCount == 1) {
-            _offset += details.focalPointDelta.dx;
-            // print('1:${_offset}');
-          }
-        });
+        _deltaFocalPointX = (details.focalPoint.dx - _lastUpdateFocalPointX);
+        _lastUpdateFocalPointX = details.focalPoint.dx;
+
+        updateScaleAndScrolling(newScale, _focalPointX,
+            extraX: _deltaFocalPointX);
       },
       onScaleEnd: (details) {
         _onScaleStart = false;
-        _baseScale = _scale;
       },
       onLongPressMoveUpdate: (details) {
         setState(() {

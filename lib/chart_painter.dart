@@ -49,9 +49,7 @@ class LineChartPainter extends CustomPainter {
     for (LineSeries lineSeries in lineSeriesCollection) {
       for (DateTime dateTime in lineSeries.dataMap.keys) {
         double distance =
-            (dateTime.difference(minDate).inSeconds.toDouble() * xStep -
-                    x +
-                    offset)
+            (dateTime.difference(minDate).inSeconds.toDouble() * xStep - x)
                 .abs();
 
         if (distance < closestDistance) {
@@ -106,10 +104,13 @@ class LineChartPainter extends CustomPainter {
       textPainter.layout();
       textPainter.paint(canvas, Offset(10, scaleY));
     }
-    //canvas.clipRect(const Rect.fromLTRB(10, 0, 100, 200));
-    canvas.translate(leftOffset, 0);
 
-    double xStep = (size.width - rightOffset) / xRange;
+    canvas.save();
+    canvas.clipRect(Rect.fromPoints(
+        Offset(leftOffset - 1, 0), Offset(size.width, size.height + 20)));
+    canvas.translate(leftOffset + offset, 0);
+
+    double xStep = (size.width * scale - rightOffset) / xRange;
 
     for (LineSeries lineSeries in lineSeriesCollection) {
       List<DateValuePair> data = lineSeries.dataList;
@@ -123,8 +124,7 @@ class LineChartPainter extends CustomPainter {
 
       for (int i = 0; i < data.length; i++) {
         double scaleX =
-            (data[i].dateTime.difference(minDate).inSeconds * xStep) * scale +
-                offset;
+            (data[i].dateTime.difference(minDate).inSeconds * xStep);
         double scaleY = (maxValue - data[i].value) * yStep;
         if (i == 0) {
           linePath.moveTo(scaleX, scaleY);
@@ -136,124 +136,126 @@ class LineChartPainter extends CustomPainter {
       canvas.drawPath(linePath, linePaint);
     }
 
-    if (showTooltip) {
-      DateTime closestDateTime = _findClosetPoint(
-        tapX: x,
-        xStep: xStep * scale,
-      );
+    canvas.restore();
 
-      // draw vertical line at the closest point
-      Paint verticalLinePaint = Paint()
-        ..color = Colors.black
-        ..strokeWidth = 1.0
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke;
-      canvas.drawLine(
-        Offset(
-            (closestDateTime.difference(minDate).inSeconds.toDouble() *
-                    xStep *
-                    scale +
-                offset),
-            0),
-        Offset(
-            (closestDateTime.difference(minDate).inSeconds.toDouble() *
-                    xStep *
-                    scale +
-                offset),
-            size.height),
-        verticalLinePaint,
-      );
+    // if (showTooltip) {
+    //   DateTime closestDateTime = _findClosetPoint(
+    //     tapX: x,
+    //     xStep: xStep * scale,
+    //   );
 
-      String formatDateTime = _formatDate(closestDateTime);
+    //   // draw vertical line at the closest point
+    //   Paint verticalLinePaint = Paint()
+    //     ..color = Colors.black
+    //     ..strokeWidth = 1.0
+    //     ..strokeCap = StrokeCap.round
+    //     ..style = PaintingStyle.stroke;
+    //   canvas.drawLine(
+    //     Offset(
+    //         (closestDateTime.difference(minDate).inSeconds.toDouble() *
+    //                 xStep *
+    //                 scale +
+    //             offset),
+    //         0),
+    //     Offset(
+    //         (closestDateTime.difference(minDate).inSeconds.toDouble() *
+    //                 xStep *
+    //                 scale +
+    //             offset),
+    //         size.height),
+    //     verticalLinePaint,
+    //   );
 
-      TextSpan span = TextSpan(
-        text: formatDateTime,
-        style: const TextStyle(
-          color: Colors.black,
-        ),
-      );
-      TextPainter tp = TextPainter(
-          text: span,
-          textAlign: TextAlign.center,
-          textDirection: ui.TextDirection.ltr);
-      tp.layout();
-      double textX = (closestDateTime.difference(minDate).inSeconds.toDouble() *
-                  xStep *
-                  scale +
-              offset) -
-          (tp.width / 2);
-      double textY = size.height - tp.height;
-      tp.paint(canvas, Offset(textX, textY));
+    //   String formatDateTime = _formatDate(closestDateTime);
 
-      List<Map<String, double?>> valueMapList =
-          _getValueByDateTime(closestDateTime);
-      for (int j = 0; j < valueMapList.length; j++) {
-        Map<String, double?> nameValue = valueMapList[j];
-        MapEntry nameValueEntry = nameValue.entries.toList()[0];
-        if (nameValueEntry.value != null) {
-          String formatNameValue =
-              '${nameValueEntry.key} : ${nameValueEntry.value}';
+    //   TextSpan span = TextSpan(
+    //     text: formatDateTime,
+    //     style: const TextStyle(
+    //       color: Colors.black,
+    //     ),
+    //   );
+    //   TextPainter tp = TextPainter(
+    //       text: span,
+    //       textAlign: TextAlign.center,
+    //       textDirection: ui.TextDirection.ltr);
+    //   tp.layout();
+    //   double textX = (closestDateTime.difference(minDate).inSeconds.toDouble() *
+    //               xStep *
+    //               scale +
+    //           offset) -
+    //       (tp.width / 2);
+    //   double textY = size.height - tp.height;
+    //   tp.paint(canvas, Offset(textX, textY));
 
-          TextSpan nameValueSpan = TextSpan(
-            text: formatNameValue,
-            style: const TextStyle(
-              color: Colors.black,
-            ),
-          );
-          TextPainter nameValueTp = TextPainter(
-              text: nameValueSpan,
-              textAlign: TextAlign.center,
-              textDirection: ui.TextDirection.ltr);
-          nameValueTp.layout();
+    //   List<Map<String, double?>> valueMapList =
+    //       _getValueByDateTime(closestDateTime);
+    //   for (int j = 0; j < valueMapList.length; j++) {
+    //     Map<String, double?> nameValue = valueMapList[j];
+    //     MapEntry nameValueEntry = nameValue.entries.toList()[0];
+    //     if (nameValueEntry.value != null) {
+    //       String formatNameValue =
+    //           '${nameValueEntry.key} : ${nameValueEntry.value}';
 
-          double nameValueTpTextY = size.height - tp.height + 14 * (j + 1);
-          nameValueTp.paint(canvas, Offset(textX + 14, nameValueTpTextY));
+    //       TextSpan nameValueSpan = TextSpan(
+    //         text: formatNameValue,
+    //         style: const TextStyle(
+    //           color: Colors.black,
+    //         ),
+    //       );
+    //       TextPainter nameValueTp = TextPainter(
+    //           text: nameValueSpan,
+    //           textAlign: TextAlign.center,
+    //           textDirection: ui.TextDirection.ltr);
+    //       nameValueTp.layout();
 
-          Paint circlePaint = Paint()..color = lineSeriesCollection[j].color;
-          Offset center = Offset(textX + 4, nameValueTpTextY + 8);
-          double radius = 4;
-          canvas.drawCircle(center, radius, circlePaint);
-        }
-      }
-    }
+    //       double nameValueTpTextY = size.height - tp.height + 14 * (j + 1);
+    //       nameValueTp.paint(canvas, Offset(textX + 14, nameValueTpTextY));
 
-    Paint axisPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 1;
+    //       Paint circlePaint = Paint()..color = lineSeriesCollection[j].color;
+    //       Offset center = Offset(textX + 4, nameValueTpTextY + 8);
+    //       double radius = 4;
+    //       canvas.drawCircle(center, radius, circlePaint);
+    //     }
+    //   }
+    // }
 
-    // Draw X-axis line
-    canvas.drawLine(Offset(0, size.height),
-        Offset(size.width - rightOffset, size.height), axisPaint);
+    // Paint axisPaint = Paint()
+    //   ..color = Colors.black
+    //   ..strokeWidth = 1;
 
-    // Draw Y-axis line
-    canvas.drawLine(Offset(0, 0), Offset(0, size.height), axisPaint);
+    // // Draw X-axis line
+    // canvas.drawLine(Offset(0, size.height),
+    //     Offset(size.width - rightOffset, size.height), axisPaint);
 
-    // Draw X-axis scale points and vertical grid line
-    int xScalePoints = 5;
-    double xInterval = longestLineSeries.dataList.length / xScalePoints;
-    for (int i = 0; i < xScalePoints; i++) {
-      double scaleX = (longestLineSeries
-              .dataList[(i * xInterval).round()].dateTime
-              .difference(minDate)
-              .inSeconds
-              .toDouble() *
-          xStep);
-      canvas.drawLine(Offset(scaleX * scale + offset, 0),
-          Offset(scaleX * scale + offset, size.height), gridPaint);
+    // // Draw Y-axis line
+    // canvas.drawLine(Offset(0, 0), Offset(0, size.height), axisPaint);
 
-      String label = DateFormat('MM/dd')
-          .format(longestLineSeries.dataList[(i * xInterval).floor()].dateTime);
+    // // Draw X-axis scale points and vertical grid line
+    // int xScalePoints = 5;
+    // double xInterval = longestLineSeries.dataList.length / xScalePoints;
+    // for (int i = 0; i < xScalePoints; i++) {
+    //   double scaleX = (longestLineSeries
+    //           .dataList[(i * xInterval).round()].dateTime
+    //           .difference(minDate)
+    //           .inSeconds
+    //           .toDouble() *
+    //       xStep);
+    //   canvas.drawLine(Offset(scaleX * scale + offset, 0),
+    //       Offset(scaleX * scale + offset, size.height), gridPaint);
 
-      textPainter.text = TextSpan(
-        text: label,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.black,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(canvas, Offset(scaleX * scale + offset, size.height));
-    }
+    //   String label = DateFormat('MM/dd')
+    //       .format(longestLineSeries.dataList[(i * xInterval).floor()].dateTime);
+
+    //   textPainter.text = TextSpan(
+    //     text: label,
+    //     style: TextStyle(
+    //       fontSize: 12,
+    //       color: Colors.black,
+    //     ),
+    //   );
+    //   textPainter.layout();
+    //   textPainter.paint(canvas, Offset(scaleX * scale + offset, size.height));
+    // }
   }
 
   @override
