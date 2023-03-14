@@ -111,7 +111,7 @@ class LineChartPainter extends CustomPainter {
         ),
       );
       textPainter.layout();
-      textPainter.paint(canvas, Offset(10, scaleY));
+      textPainter.paint(canvas, Offset(10, scaleY - textPainter.height / 2));
     }
 
     canvas.save();
@@ -228,13 +228,26 @@ class LineChartPainter extends CustomPainter {
             textDirection: ui.TextDirection.ltr);
         tp.layout();
         double textX =
-            (closestDateTime.difference(minDate).inSeconds.toDouble() * xStep) -
-                (tp.width / 2);
+            (closestDateTime.difference(minDate).inSeconds.toDouble() * xStep) +
+                10;
         double textY = size.height / 2 - tp.height;
-        tp.paint(canvas, Offset(textX, textY));
 
         List<Map<String, double?>> valueMapList =
             _getValueByDateTime(closestDateTime);
+
+        Rect rect1 = Rect.fromLTWH(
+          textX - 4,
+          textY,
+          tp.width + 6,
+          14.0 * (valueMapList.length + 1) +
+              4, // +1 for the date time string at the first row
+        );
+        Paint rectPaint = Paint()..color = Colors.white;
+        RRect rRect = RRect.fromRectAndRadius(rect1, Radius.circular(4));
+        canvas.drawRRect(rRect, rectPaint);
+
+        tp.paint(canvas, Offset(textX, textY));
+
         for (int j = 0; j < valueMapList.length; j++) {
           Map<String, double?> nameValue = valueMapList[j];
           MapEntry nameValueEntry = nameValue.entries.toList()[0];
