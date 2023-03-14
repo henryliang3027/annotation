@@ -12,8 +12,6 @@ class LineChart extends StatefulWidget {
 }
 
 class LineChartState extends State<LineChart> {
-  //ds
-
   bool _showTooltip = false;
   bool _onScaleStart = false;
   double _x = 0.0;
